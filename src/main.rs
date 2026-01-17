@@ -1,10 +1,12 @@
+#![windows_subsystem = "windows"]
+
 use macroquad::prelude::*;
-/*
+
 mod ai;
-mod board;*/
+mod board;
 mod config;
-//mod game;
-//mod menu;
+mod game;
+mod menu;
 mod state;
 mod utils;
 
@@ -12,37 +14,62 @@ use config::*;
 use state::GameState;
 use utils::*;
 
-#[macroquad::main("Tic Tac Toe")]
+fn window_conf() -> Conf {
+    Conf {
+        window_title: WINDOW_TITLE.to_string(),
+        window_width: WINDOW_WIDTH,
+        window_height: WINDOW_HEIGHT,
+        window_resizable: WINDOW_RESIZABLE,
+        fullscreen: WINDOW_FULLSCREEN,
+        ..Default::default()
+    }
+}
+
+#[macroquad::main(window_conf)]
 async fn main() {
+    // Load and set the custom font (embedded in binary)
+    let font = config::load_font();
+    config::set_font(font);
+
+    // Load button textures (embedded in binary)
+    config::load_button_textures();
+
     let mut game_state = GameState::Menu;
 
     loop {
         let scale = calculate_scale();
-
         clear_background(BG_COLOR);
 
-        // Draw virtual bounds (debug)
-        draw_rectangle_lines(
+        // Enter virtual space
+        draw_rectangle(
             scale.offset_x,
             scale.offset_y,
             VIRTUAL_WIDTH * scale.scale,
             VIRTUAL_HEIGHT * scale.scale,
-            2.0,
-            RED,
+            BG_COLOR,
         );
 
-        // Example text in virtual space
-        draw_text_ex(
-            "Virtual Resolution: 800 x 600",
-            scale.offset_x + 20.0 * scale.scale,
-            scale.offset_y + 40.0 * scale.scale,
-            TextParams {
-                font_size: (32.0 * scale.scale) as u16,
-                color: TEXT_COLOR,
-                ..Default::default()
-            },
-        );
+        // Scale drawing - Fixed: positive Y zoom to prevent text inversion
+        let camera = Camera2D {
+            target: vec2(VIRTUAL_WIDTH / 2.0, VIRTUAL_HEIGHT / 2.0),
+            zoom: vec2(2.0 / VIRTUAL_WIDTH, 2.0 / VIRTUAL_HEIGHT) * scale.scale,
+            offset: vec2(scale.offset_x, scale.offset_y),
+            ..Default::default()
+        };
 
+        set_camera(&camera);
+
+        // ---- State machine ----
+        let next_state = match game_state {
+            GameState::Menu => menu::update(&scale),
+            GameState::PvP | GameState::PvAI => game::update(game_state, &scale),
+        };
+
+        if let Some(state) = next_state {
+            game_state = state;
+        }
+
+        set_default_camera();
         next_frame().await;
     }
 }
