@@ -12,6 +12,7 @@ pub fn update(scale: &ScreenScale) -> Option<GameState> {
     let start_y = 250.0;
     let mouse = mouse_to_virtual(scale);
     let font = crate::config::get_font();
+    let theme = crate::theme::get_current_theme();
 
     // Draw Title
     let title_text = "TIC TAC TOE";
@@ -24,7 +25,23 @@ pub fn update(scale: &ScreenScale) -> Option<GameState> {
         TextParams {
             font,
             font_size: title_size,
-            color: DARK_GREY,
+            color: theme.text,
+            ..Default::default()
+        },
+    );
+
+    // Theme Instructions
+    let theme_instr = format!("Theme: {} (Press T)", theme.name);
+    let instr_size = 20;
+    let instr_dim = measure_text(&theme_instr, font, instr_size, 1.0);
+    draw_text_ex(
+        &theme_instr,
+        VIRTUAL_WIDTH / 2.0 - instr_dim.width / 2.0,
+        160.0,
+        TextParams {
+            font,
+            font_size: instr_size,
+            color: theme.muted,
             ..Default::default()
         },
     );
@@ -48,6 +65,10 @@ pub fn update(scale: &ScreenScale) -> Option<GameState> {
         }
     }
 
+    if is_key_pressed(KeyCode::T) {
+        crate::theme::cycle_theme();
+    }
+
     None
 }
 
@@ -63,6 +84,7 @@ pub fn choose_symbol(scale: &ScreenScale) -> Option<GameState> {
     let mouse = mouse_to_virtual(scale);
     let font = crate::config::get_font();
     let inter_font = crate::config::get_inter_font();
+    let theme = crate::theme::get_current_theme();
 
     // Draw Title
     let title_text = "CHOOSE YOUR SIDE";
@@ -75,7 +97,7 @@ pub fn choose_symbol(scale: &ScreenScale) -> Option<GameState> {
         TextParams {
             font,
             font_size: title_size,
-            color: DARK_GREY,
+            color: theme.text,
             ..Default::default()
         },
     );
@@ -115,7 +137,10 @@ pub fn choose_symbol(scale: &ScreenScale) -> Option<GameState> {
 
 fn draw_decorations() {
     // Draw Background Decorations (X and O icons using Font for sharpness)
-    let decoration_color = Color::new(0.0, 0.0, 0.0, 0.05); // Very faint grey
+    let theme = crate::theme::get_current_theme();
+    let mut decoration_color = theme.muted;
+    decoration_color.a = 0.05; // Very faint
+
     let font = crate::config::get_font();
 
     if let Some(f) = font {

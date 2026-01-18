@@ -10,6 +10,7 @@ mod game;
 mod menu;
 mod particles;
 mod state;
+mod theme;
 mod utils;
 
 use config::*;
@@ -43,9 +44,10 @@ async fn main() {
     loop {
         let scale = calculate_scale();
         let dt = get_frame_time();
+        let theme = crate::theme::get_current_theme();
 
-        clear_background(BG_COLOR);
-        bg.update();
+        clear_background(theme.bg);
+        bg.update(crate::game::is_game_over());
 
         // Scale drawing
         let camera = Camera2D {

@@ -17,6 +17,10 @@ pub fn set_player_symbol(symbol: CellState) {
     }
 }
 
+pub fn is_game_over() -> bool {
+    unsafe { GAME_OVER }
+}
+
 #[allow(static_mut_refs)]
 pub fn update(mode: GameState, scale: &ScreenScale) -> Option<GameState> {
     let board = unsafe {
@@ -28,6 +32,7 @@ pub fn update(mode: GameState, scale: &ScreenScale) -> Option<GameState> {
 
     let mouse = mouse_to_virtual(scale);
     let font = crate::config::get_font();
+    let theme = crate::theme::get_current_theme();
 
     // ---- Draw UI ----
     draw_text_ex(
@@ -41,19 +46,19 @@ pub fn update(mode: GameState, scale: &ScreenScale) -> Option<GameState> {
         TextParams {
             font,
             font_size: 24,
-            color: TEXT_COLOR,
+            color: theme.text,
             ..Default::default()
         },
     );
 
     draw_text_ex(
-        "Press ESC to return to Menu | R to Reset",
+        "ESC: Menu | R: Reset | T: Theme",
         20.0,
         70.0,
         TextParams {
             font,
             font_size: 18,
-            color: MUTED_GREY,
+            color: theme.muted,
             ..Default::default()
         },
     );
@@ -66,9 +71,9 @@ pub fn update(mode: GameState, scale: &ScreenScale) -> Option<GameState> {
                 _ => "IT'S A DRAW!",
             };
             let color = match WINNER {
-                Some(CellState::X) => PRIMARY_BLUE,
-                Some(CellState::O) => SUCCESS_GREEN,
-                _ => MUTED_GREY,
+                Some(CellState::X) => theme.primary,
+                Some(CellState::O) => theme.secondary,
+                _ => theme.muted,
             };
 
             let dim = measure_text(msg, font, 40, 1.0);
@@ -94,7 +99,7 @@ pub fn update(mode: GameState, scale: &ScreenScale) -> Option<GameState> {
                 TextParams {
                     font,
                     font_size: 24,
-                    color: DARK_GREY,
+                    color: theme.text,
                     ..Default::default()
                 },
             );
@@ -111,7 +116,7 @@ pub fn update(mode: GameState, scale: &ScreenScale) -> Option<GameState> {
                 TextParams {
                     font,
                     font_size: 24,
-                    color: DARK_GREY,
+                    color: theme.text,
                     ..Default::default()
                 },
             );
@@ -146,6 +151,11 @@ pub fn update(mode: GameState, scale: &ScreenScale) -> Option<GameState> {
                 }
             }
         }
+    }
+
+    // Theme switching
+    if is_key_pressed(KeyCode::T) {
+        crate::theme::cycle_theme();
     }
 
     // Reset game
@@ -183,9 +193,9 @@ unsafe fn apply_move(board: &mut Board, row: usize, col: usize) {
     let center = board.get_cell_center(row, col);
     let color = unsafe {
         if CURRENT_TURN == CellState::X {
-            PRIMARY_BLUE
+            crate::theme::get_current_theme().primary
         } else {
-            SUCCESS_GREEN
+            crate::theme::get_current_theme().secondary
         }
     };
     crate::particles::spawn_move(center, color);

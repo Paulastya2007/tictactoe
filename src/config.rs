@@ -139,12 +139,6 @@ pub const WINDOW_RESIZABLE: bool = false;
 pub const WINDOW_FULLSCREEN: bool = false;
 
 // =====================
-// Colors
+// Colors (Handled by Theme System)
 // =====================
-pub const BG_COLOR: Color = Color::from_rgba(245, 245, 245, 255);
-pub const TEXT_COLOR: Color = Color::from_rgba(20, 20, 20, 255);
-
-pub const PRIMARY_BLUE: Color = Color::from_rgba(52, 120, 246, 255);
-pub const SUCCESS_GREEN: Color = Color::from_rgba(46, 204, 113, 255);
-pub const MUTED_GREY: Color = Color::from_rgba(120, 120, 120, 255);
-pub const DARK_GREY: Color = Color::from_rgba(50, 50, 50, 255);
+// Current theme colors are retrieved from crate::theme::get_current_theme()
