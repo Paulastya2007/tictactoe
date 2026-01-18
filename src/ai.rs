@@ -6,9 +6,9 @@ pub fn find_best_move(board: &Board, ai_symbol: CellState) -> Option<(usize, usi
 
     for row in 0..3 {
         for col in 0..3 {
-            if board.cells[row][col] == CellState::Empty {
+            if board.cells[row][col].state == CellState::Empty {
                 let mut temp_board = *board;
-                temp_board.cells[row][col] = ai_symbol;
+                temp_board.cells[row][col].state = ai_symbol;
                 let score = minimax(&temp_board, 0, false, ai_symbol);
                 if score > best_score {
                     best_score = score;
@@ -28,7 +28,7 @@ fn minimax(board: &Board, depth: i32, is_maximizing: bool, ai_symbol: CellState)
         CellState::X
     };
 
-    if let Some(winner) = board.check_winner() {
+    if let Some((winner, _)) = board.check_winner_pure() {
         if winner == ai_symbol {
             return 10.0 - depth as f32;
         } else if winner == player_symbol {
@@ -44,9 +44,9 @@ fn minimax(board: &Board, depth: i32, is_maximizing: bool, ai_symbol: CellState)
         let mut best_score = f32::NEG_INFINITY;
         for row in 0..3 {
             for col in 0..3 {
-                if board.cells[row][col] == CellState::Empty {
+                if board.cells[row][col].state == CellState::Empty {
                     let mut temp_board = *board;
-                    temp_board.cells[row][col] = ai_symbol;
+                    temp_board.cells[row][col].state = ai_symbol;
                     let score = minimax(&temp_board, depth + 1, false, ai_symbol);
                     if score > best_score {
                         best_score = score;
@@ -59,9 +59,9 @@ fn minimax(board: &Board, depth: i32, is_maximizing: bool, ai_symbol: CellState)
         let mut best_score = f32::INFINITY;
         for row in 0..3 {
             for col in 0..3 {
-                if board.cells[row][col] == CellState::Empty {
+                if board.cells[row][col].state == CellState::Empty {
                     let mut temp_board = *board;
-                    temp_board.cells[row][col] = player_symbol;
+                    temp_board.cells[row][col].state = player_symbol;
                     let score = minimax(&temp_board, depth + 1, true, ai_symbol);
                     if score < best_score {
                         best_score = score;

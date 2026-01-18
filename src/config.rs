@@ -35,19 +35,15 @@ pub fn set_inter_font(font: Font) {
 }
 
 // =====================
-// Textures (Buttons & Icons)
+// Textures (Buttons)
 // =====================
 const BUTTON_BLUE_DATA: &[u8] =
     include_bytes!("../assets/things/Blue/Default/button_rectangle_depth_gradient.png");
 const BUTTON_GREEN_DATA: &[u8] =
     include_bytes!("../assets/things/Green/Default/button_rectangle_depth_gradient.png");
-const ICON_CROSS_DATA: &[u8] = include_bytes!("../assets/things/Blue/Default/icon_cross.png");
-const ICON_CIRCLE_DATA: &[u8] = include_bytes!("../assets/things/Green/Default/icon_circle.png");
 
 static BUTTON_BLUE_TEX: OnceLock<Texture2D> = OnceLock::new();
 static BUTTON_GREEN_TEX: OnceLock<Texture2D> = OnceLock::new();
-static ICON_CROSS_TEX: OnceLock<Texture2D> = OnceLock::new();
-static ICON_CIRCLE_TEX: OnceLock<Texture2D> = OnceLock::new();
 
 // =====================
 // Sounds
@@ -63,18 +59,12 @@ static SOUND_WIN: OnceLock<macroquad::audio::Sound> = OnceLock::new();
 pub fn load_assets() {
     let blue_tex = Texture2D::from_file_with_format(BUTTON_BLUE_DATA, None);
     let green_tex = Texture2D::from_file_with_format(BUTTON_GREEN_DATA, None);
-    let cross_tex = Texture2D::from_file_with_format(ICON_CROSS_DATA, None);
-    let circle_tex = Texture2D::from_file_with_format(ICON_CIRCLE_DATA, None);
 
     blue_tex.set_filter(FilterMode::Linear);
     green_tex.set_filter(FilterMode::Linear);
-    cross_tex.set_filter(FilterMode::Linear);
-    circle_tex.set_filter(FilterMode::Linear);
 
     let _ = BUTTON_BLUE_TEX.set(blue_tex);
     let _ = BUTTON_GREEN_TEX.set(green_tex);
-    let _ = ICON_CROSS_TEX.set(cross_tex);
-    let _ = ICON_CIRCLE_TEX.set(circle_tex);
 }
 
 pub async fn load_sounds() {
@@ -133,14 +123,6 @@ pub fn get_button_green() -> Option<&'static Texture2D> {
     BUTTON_GREEN_TEX.get()
 }
 
-pub fn get_icon_cross() -> Option<&'static Texture2D> {
-    ICON_CROSS_TEX.get()
-}
-
-pub fn get_icon_circle() -> Option<&'static Texture2D> {
-    ICON_CIRCLE_TEX.get()
-}
-
 // =====================
 // Virtual resolution
 // =====================
@@ -164,6 +146,5 @@ pub const TEXT_COLOR: Color = Color::from_rgba(20, 20, 20, 255);
 
 pub const PRIMARY_BLUE: Color = Color::from_rgba(52, 120, 246, 255);
 pub const SUCCESS_GREEN: Color = Color::from_rgba(46, 204, 113, 255);
-pub const WARNING_RED: Color = Color::from_rgba(231, 76, 60, 255);
 pub const MUTED_GREY: Color = Color::from_rgba(120, 120, 120, 255);
 pub const DARK_GREY: Color = Color::from_rgba(50, 50, 50, 255);

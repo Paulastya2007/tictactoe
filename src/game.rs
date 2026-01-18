@@ -10,6 +10,8 @@ static mut GAME_OVER: bool = false;
 static mut WINNER: Option<CellState> = None;
 static mut PLAYER_SYMBOL: CellState = CellState::X;
 static mut AI_TIMER: f32 = 0.0;
+static mut WINS_X: u32 = 0;
+static mut WINS_O: u32 = 0;
 
 pub fn set_player_symbol(symbol: CellState) {
     unsafe {
@@ -58,8 +60,22 @@ pub fn update(mode: GameState, scale: &ScreenScale) -> Option<GameState> {
         },
     );
 
-    // Turn indicator or Game Over message
+    // Scoreboard
     unsafe {
+        let score_text = format!("X: {} | O: {}", WINS_X, WINS_O);
+        let score_dim = measure_text(&score_text, font, 24, 1.0);
+        draw_text_ex(
+            &score_text,
+            VIRTUAL_WIDTH / 2.0 - score_dim.width / 2.0,
+            40.0,
+            TextParams {
+                font,
+                font_size: 24,
+                color: DARK_GREY,
+                ..Default::default()
+            },
+        );
+
         if GAME_OVER {
             let msg = match WINNER {
                 Some(CellState::X) => "PLAYER X WINS!",
@@ -140,7 +156,7 @@ pub fn update(mode: GameState, scale: &ScreenScale) -> Option<GameState> {
             } else {
                 if is_mouse_button_pressed(MouseButton::Left) {
                     if let Some((row, col)) = board.get_cell_at(mouse) {
-                        if board.cells[row][col] == CellState::Empty {
+                        if board.cells[row][col].state == CellState::Empty {
                             apply_move(board, row, col);
                         }
                     }
@@ -176,7 +192,7 @@ pub fn update(mode: GameState, scale: &ScreenScale) -> Option<GameState> {
 
 unsafe fn apply_move(board: &mut Board, row: usize, col: usize) {
     unsafe {
-        board.cells[row][col] = CURRENT_TURN;
+        board.set_cell(row, col, CURRENT_TURN);
     }
     crate::config::play_move();
 
@@ -185,6 +201,11 @@ unsafe fn apply_move(board: &mut Board, row: usize, col: usize) {
         unsafe {
             WINNER = Some(winner);
             GAME_OVER = true;
+            match winner {
+                CellState::X => WINS_X += 1,
+                CellState::O => WINS_O += 1,
+                _ => {}
+            }
         }
         crate::config::play_win();
     } else if board.is_full() {
