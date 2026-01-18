@@ -147,6 +147,13 @@ impl Board {
         }
     }
 
+    pub fn get_cell_center(&self, row: usize, col: usize) -> Vec2 {
+        vec2(
+            self.x + col as f32 * self.cell_size + self.cell_size / 2.0,
+            self.y + row as f32 * self.cell_size + self.cell_size / 2.0,
+        )
+    }
+
     pub fn check_winner(&mut self) -> Option<CellState> {
         if let Some((state, cells)) = self.check_winner_pure() {
             self.winning_cells = Some(cells);

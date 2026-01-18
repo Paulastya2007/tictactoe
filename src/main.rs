@@ -3,10 +3,12 @@
 use macroquad::prelude::*;
 
 mod ai;
+mod background;
 mod board;
 mod config;
 mod game;
 mod menu;
+mod particles;
 mod state;
 mod utils;
 
@@ -36,21 +38,16 @@ async fn main() {
     config::load_sounds().await;
 
     let mut game_state = GameState::Menu;
+    let mut bg = background::Background::new();
 
     loop {
         let scale = calculate_scale();
+        let dt = get_frame_time();
+
         clear_background(BG_COLOR);
+        bg.update();
 
-        // Enter virtual space
-        draw_rectangle(
-            scale.offset_x,
-            scale.offset_y,
-            VIRTUAL_WIDTH * scale.scale,
-            VIRTUAL_HEIGHT * scale.scale,
-            BG_COLOR,
-        );
-
-        // Scale drawing - Fixed: positive Y zoom to prevent text inversion
+        // Scale drawing
         let camera = Camera2D {
             target: vec2(VIRTUAL_WIDTH / 2.0, VIRTUAL_HEIGHT / 2.0),
             zoom: vec2(2.0 / VIRTUAL_WIDTH, 2.0 / VIRTUAL_HEIGHT) * scale.scale,
@@ -59,6 +56,9 @@ async fn main() {
         };
 
         set_camera(&camera);
+
+        // Draw background
+        bg.draw();
 
         // ---- State machine ----
         let next_state = match game_state {
@@ -70,6 +70,9 @@ async fn main() {
         if let Some(state) = next_state {
             game_state = state;
         }
+
+        // Draw and update particles
+        particles::update_and_draw(dt);
 
         set_default_camera();
         next_frame().await;

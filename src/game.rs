@@ -10,8 +10,6 @@ static mut GAME_OVER: bool = false;
 static mut WINNER: Option<CellState> = None;
 static mut PLAYER_SYMBOL: CellState = CellState::X;
 static mut AI_TIMER: f32 = 0.0;
-static mut WINS_X: u32 = 0;
-static mut WINS_O: u32 = 0;
 
 pub fn set_player_symbol(symbol: CellState) {
     unsafe {
@@ -60,22 +58,7 @@ pub fn update(mode: GameState, scale: &ScreenScale) -> Option<GameState> {
         },
     );
 
-    // Scoreboard
     unsafe {
-        let score_text = format!("X: {} | O: {}", WINS_X, WINS_O);
-        let score_dim = measure_text(&score_text, font, 24, 1.0);
-        draw_text_ex(
-            &score_text,
-            VIRTUAL_WIDTH / 2.0 - score_dim.width / 2.0,
-            40.0,
-            TextParams {
-                font,
-                font_size: 24,
-                color: DARK_GREY,
-                ..Default::default()
-            },
-        );
-
         if GAME_OVER {
             let msg = match WINNER {
                 Some(CellState::X) => "PLAYER X WINS!",
@@ -196,18 +179,32 @@ unsafe fn apply_move(board: &mut Board, row: usize, col: usize) {
     }
     crate::config::play_move();
 
+    // Spawn move particles
+    let center = board.get_cell_center(row, col);
+    let color = unsafe {
+        if CURRENT_TURN == CellState::X {
+            PRIMARY_BLUE
+        } else {
+            SUCCESS_GREEN
+        }
+    };
+    crate::particles::spawn_move(center, color);
+
     // Check winner/draw
     if let Some(winner) = board.check_winner() {
         unsafe {
             WINNER = Some(winner);
             GAME_OVER = true;
-            match winner {
-                CellState::X => WINS_X += 1,
-                CellState::O => WINS_O += 1,
-                _ => {}
-            }
         }
         crate::config::play_win();
+
+        // Spawn win particles for all winning cells
+        if let Some(winning_coords) = board.winning_cells {
+            for coords in winning_coords {
+                let win_center = board.get_cell_center(coords.0, coords.1);
+                crate::particles::spawn_win(win_center, color);
+            }
+        }
     } else if board.is_full() {
         unsafe {
             GAME_OVER = true;
