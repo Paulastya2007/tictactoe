@@ -4,20 +4,92 @@ use crate::utils::*;
 use macroquad::prelude::*;
 
 pub fn update(scale: &ScreenScale) -> Option<GameState> {
-    let button_width = 260.0;
-    let button_height = 60.0;
+    let button_width = 280.0;
+    let button_height = 70.0;
 
     let center_x = VIRTUAL_WIDTH / 2.0 - button_width / 2.0;
-    let start_y = 220.0;
 
+    // Draw Background Decorations (X and O icons using Font for sharpness)
+    let decoration_color = Color::new(0.0, 0.0, 0.0, 0.05); // Very faint grey
+    let font = crate::config::get_font();
+
+    if let Some(f) = font {
+        // Top Left X
+        draw_text_ex(
+            "X",
+            50.0,
+            180.0,
+            TextParams {
+                font: Some(f),
+                font_size: 150,
+                color: decoration_color,
+                ..Default::default()
+            },
+        );
+        // Bottom Right X
+        draw_text_ex(
+            "X",
+            VIRTUAL_WIDTH - 200.0,
+            VIRTUAL_HEIGHT - 50.0,
+            TextParams {
+                font: Some(f),
+                font_size: 180,
+                color: decoration_color,
+                ..Default::default()
+            },
+        );
+
+        // Top Right O
+        draw_text_ex(
+            "O",
+            VIRTUAL_WIDTH - 250.0,
+            200.0,
+            TextParams {
+                font: Some(f),
+                font_size: 160,
+                color: decoration_color,
+                ..Default::default()
+            },
+        );
+        // Bottom Left O
+        draw_text_ex(
+            "O",
+            80.0,
+            VIRTUAL_HEIGHT - 80.0,
+            TextParams {
+                font: Some(f),
+                font_size: 140,
+                color: decoration_color,
+                ..Default::default()
+            },
+        );
+    }
+
+    // Draw Title
+    let title_text = "TIC TAC TOE";
+    let title_size = 64;
+    let title_dim = measure_text(title_text, font, title_size, 1.0);
+    draw_text_ex(
+        title_text,
+        VIRTUAL_WIDTH / 2.0 - title_dim.width / 2.0,
+        120.0,
+        TextParams {
+            font,
+            font_size: title_size,
+            color: DARK_GREY,
+            ..Default::default()
+        },
+    );
+
+    let start_y = 250.0;
     let mouse = mouse_to_virtual(scale);
 
     // ---- PvP Button ----
     let pvp_rect = Rect::new(center_x, start_y, button_width, button_height);
-    draw_button(pvp_rect, "Play vs Player", ButtonType::Blue, mouse);
+    draw_button(pvp_rect, "Player vs Player", ButtonType::Blue, mouse);
 
     // ---- PvAI Button ----
-    let ai_rect = Rect::new(center_x, start_y + 90.0, button_width, button_height);
+    let ai_rect = Rect::new(center_x, start_y + 100.0, button_width, button_height);
     draw_button(ai_rect, "Play vs AI", ButtonType::Green, mouse);
 
     if is_mouse_button_pressed(MouseButton::Left) {

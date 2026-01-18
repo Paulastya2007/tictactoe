@@ -27,12 +27,12 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    // Load and set the custom font (embedded in binary)
-    let font = config::load_font();
-    config::set_font(font);
+    // Load and set the fonts (embedded in binary)
+    config::set_font(config::load_font());
+    config::set_inter_font(config::load_inter_font());
 
-    // Load button textures (embedded in binary)
-    config::load_button_textures();
+    // Load assets (embedded in binary)
+    config::load_assets();
 
     let mut game_state = GameState::Menu;
 
