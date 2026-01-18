@@ -33,6 +33,7 @@ async fn main() {
 
     // Load assets (embedded in binary)
     config::load_assets();
+    config::load_sounds().await;
 
     let mut game_state = GameState::Menu;
 
@@ -62,6 +63,7 @@ async fn main() {
         // ---- State machine ----
         let next_state = match game_state {
             GameState::Menu => menu::update(&scale),
+            GameState::ChooseSymbol => menu::choose_symbol(&scale),
             GameState::PvP | GameState::PvAI => game::update(game_state, &scale),
         };
 

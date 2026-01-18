@@ -4,11 +4,116 @@ use crate::utils::*;
 use macroquad::prelude::*;
 
 pub fn update(scale: &ScreenScale) -> Option<GameState> {
+    draw_decorations();
+
     let button_width = 280.0;
     let button_height = 70.0;
-
     let center_x = VIRTUAL_WIDTH / 2.0 - button_width / 2.0;
+    let start_y = 250.0;
+    let mouse = mouse_to_virtual(scale);
+    let font = crate::config::get_font();
 
+    // Draw Title
+    let title_text = "TIC TAC TOE";
+    let title_size = 64;
+    let title_dim = measure_text(title_text, font, title_size, 1.0);
+    draw_text_ex(
+        title_text,
+        VIRTUAL_WIDTH / 2.0 - title_dim.width / 2.0,
+        120.0,
+        TextParams {
+            font,
+            font_size: title_size,
+            color: DARK_GREY,
+            ..Default::default()
+        },
+    );
+
+    // ---- PvP Button ----
+    let pvp_rect = Rect::new(center_x, start_y, button_width, button_height);
+    draw_button(pvp_rect, "Player vs Player", ButtonType::Blue, mouse, None);
+
+    // ---- PvAI Button ----
+    let ai_rect = Rect::new(center_x, start_y + 100.0, button_width, button_height);
+    draw_button(ai_rect, "Play vs AI", ButtonType::Green, mouse, None);
+
+    if is_mouse_button_pressed(MouseButton::Left) {
+        if pvp_rect.contains(mouse) {
+            crate::config::play_click();
+            return Some(GameState::PvP);
+        }
+        if ai_rect.contains(mouse) {
+            crate::config::play_click();
+            return Some(GameState::ChooseSymbol);
+        }
+    }
+
+    None
+}
+
+pub fn choose_symbol(scale: &ScreenScale) -> Option<GameState> {
+    draw_decorations();
+
+    let button_width = 180.0;
+    let button_height = 180.0;
+    let center_y = VIRTUAL_HEIGHT / 2.0 - button_height / 2.0 + 50.0;
+    let spacing = 100.0;
+    let start_x = VIRTUAL_WIDTH / 2.0 - button_width - spacing / 2.0;
+
+    let mouse = mouse_to_virtual(scale);
+    let font = crate::config::get_font();
+    let inter_font = crate::config::get_inter_font();
+
+    // Draw Title
+    let title_text = "CHOOSE YOUR SIDE";
+    let title_size = 48;
+    let title_dim = measure_text(title_text, font, title_size, 1.0);
+    draw_text_ex(
+        title_text,
+        VIRTUAL_WIDTH / 2.0 - title_dim.width / 2.0,
+        150.0,
+        TextParams {
+            font,
+            font_size: title_size,
+            color: DARK_GREY,
+            ..Default::default()
+        },
+    );
+
+    // ---- Choose X Button ----
+    let x_rect = Rect::new(start_x, center_y, button_width, button_height);
+    draw_button(x_rect, "X", ButtonType::Blue, mouse, inter_font);
+
+    // ---- Choose O Button ----
+    let o_rect = Rect::new(
+        start_x + button_width + spacing,
+        center_y,
+        button_width,
+        button_height,
+    );
+    draw_button(o_rect, "O", ButtonType::Green, mouse, inter_font);
+
+    if is_mouse_button_pressed(MouseButton::Left) {
+        if x_rect.contains(mouse) {
+            crate::config::play_click();
+            crate::game::set_player_symbol(crate::board::CellState::X);
+            return Some(GameState::PvAI);
+        }
+        if o_rect.contains(mouse) {
+            crate::config::play_click();
+            crate::game::set_player_symbol(crate::board::CellState::O);
+            return Some(GameState::PvAI);
+        }
+    }
+
+    if is_key_pressed(KeyCode::Escape) {
+        return Some(GameState::Menu);
+    }
+
+    None
+}
+
+fn draw_decorations() {
     // Draw Background Decorations (X and O icons using Font for sharpness)
     let decoration_color = Color::new(0.0, 0.0, 0.0, 0.05); // Very faint grey
     let font = crate::config::get_font();
@@ -64,44 +169,6 @@ pub fn update(scale: &ScreenScale) -> Option<GameState> {
             },
         );
     }
-
-    // Draw Title
-    let title_text = "TIC TAC TOE";
-    let title_size = 64;
-    let title_dim = measure_text(title_text, font, title_size, 1.0);
-    draw_text_ex(
-        title_text,
-        VIRTUAL_WIDTH / 2.0 - title_dim.width / 2.0,
-        120.0,
-        TextParams {
-            font,
-            font_size: title_size,
-            color: DARK_GREY,
-            ..Default::default()
-        },
-    );
-
-    let start_y = 250.0;
-    let mouse = mouse_to_virtual(scale);
-
-    // ---- PvP Button ----
-    let pvp_rect = Rect::new(center_x, start_y, button_width, button_height);
-    draw_button(pvp_rect, "Player vs Player", ButtonType::Blue, mouse);
-
-    // ---- PvAI Button ----
-    let ai_rect = Rect::new(center_x, start_y + 100.0, button_width, button_height);
-    draw_button(ai_rect, "Play vs AI", ButtonType::Green, mouse);
-
-    if is_mouse_button_pressed(MouseButton::Left) {
-        if pvp_rect.contains(mouse) {
-            return Some(GameState::PvP);
-        }
-        if ai_rect.contains(mouse) {
-            return Some(GameState::PvAI);
-        }
-    }
-
-    None
 }
 
 enum ButtonType {
@@ -109,7 +176,13 @@ enum ButtonType {
     Green,
 }
 
-fn draw_button(rect: Rect, text: &str, button_type: ButtonType, mouse: Vec2) {
+fn draw_button(
+    rect: Rect,
+    text: &str,
+    button_type: ButtonType,
+    mouse: Vec2,
+    override_font: Option<&Font>,
+) {
     let hover = rect.contains(mouse);
 
     // Get the appropriate texture
@@ -134,10 +207,11 @@ fn draw_button(rect: Rect, text: &str, button_type: ButtonType, mouse: Vec2) {
     }
 
     // Draw text
-    let font_size = 22.0;
-    let font = crate::config::get_font();
+    let font = override_font.or(crate::config::get_font());
+    let font_size = if override_font.is_some() { 100.0 } else { 22.0 };
+
     let text_params = TextParams {
-        font: font,
+        font,
         font_size: font_size as u16,
         color: WHITE,
         ..Default::default()

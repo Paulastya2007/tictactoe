@@ -49,6 +49,17 @@ static BUTTON_GREEN_TEX: OnceLock<Texture2D> = OnceLock::new();
 static ICON_CROSS_TEX: OnceLock<Texture2D> = OnceLock::new();
 static ICON_CIRCLE_TEX: OnceLock<Texture2D> = OnceLock::new();
 
+// =====================
+// Sounds
+// =====================
+const SOUND_CLICK_DATA: &[u8] = include_bytes!("../assets/Sounds/click-a.ogg");
+const SOUND_MOVE_DATA: &[u8] = include_bytes!("../assets/Sounds/tap-b.ogg");
+const SOUND_WIN_DATA: &[u8] = include_bytes!("../assets/Sounds/switch-a.ogg");
+
+static SOUND_CLICK: OnceLock<macroquad::audio::Sound> = OnceLock::new();
+static SOUND_MOVE: OnceLock<macroquad::audio::Sound> = OnceLock::new();
+static SOUND_WIN: OnceLock<macroquad::audio::Sound> = OnceLock::new();
+
 pub fn load_assets() {
     let blue_tex = Texture2D::from_file_with_format(BUTTON_BLUE_DATA, None);
     let green_tex = Texture2D::from_file_with_format(BUTTON_GREEN_DATA, None);
@@ -64,6 +75,54 @@ pub fn load_assets() {
     let _ = BUTTON_GREEN_TEX.set(green_tex);
     let _ = ICON_CROSS_TEX.set(cross_tex);
     let _ = ICON_CIRCLE_TEX.set(circle_tex);
+}
+
+pub async fn load_sounds() {
+    if let Ok(sound) = macroquad::audio::load_sound_from_bytes(SOUND_CLICK_DATA).await {
+        let _ = SOUND_CLICK.set(sound);
+    }
+    if let Ok(sound) = macroquad::audio::load_sound_from_bytes(SOUND_MOVE_DATA).await {
+        let _ = SOUND_MOVE.set(sound);
+    }
+    if let Ok(sound) = macroquad::audio::load_sound_from_bytes(SOUND_WIN_DATA).await {
+        let _ = SOUND_WIN.set(sound);
+    }
+}
+
+pub fn play_click() {
+    if let Some(sound) = SOUND_CLICK.get() {
+        macroquad::audio::play_sound(
+            sound,
+            macroquad::audio::PlaySoundParams {
+                looped: false,
+                volume: 1.0,
+            },
+        );
+    }
+}
+
+pub fn play_move() {
+    if let Some(sound) = SOUND_MOVE.get() {
+        macroquad::audio::play_sound(
+            sound,
+            macroquad::audio::PlaySoundParams {
+                looped: false,
+                volume: 0.8,
+            },
+        );
+    }
+}
+
+pub fn play_win() {
+    if let Some(sound) = SOUND_WIN.get() {
+        macroquad::audio::play_sound(
+            sound,
+            macroquad::audio::PlaySoundParams {
+                looped: false,
+                volume: 1.0,
+            },
+        );
+    }
 }
 
 pub fn get_button_blue() -> Option<&'static Texture2D> {

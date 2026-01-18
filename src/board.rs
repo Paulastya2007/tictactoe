@@ -8,6 +8,7 @@ pub enum CellState {
     O,
 }
 
+#[derive(Clone, Copy)]
 pub struct Board {
     pub cells: [[CellState; 3]; 3],
     pub cell_size: f32,
